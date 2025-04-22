@@ -1,0 +1,19 @@
+# chuyende2
+*cài đặt chương trình:
+   -  tải và cài đặt:
+      + chromedriver-win64
+   -  Cài đặt môi trường ảo
+      + python -m venv env
+   -  Cài đặt các thư viện trong môi trường ảo
+      + pip install numpy pandas torch streamlit tensorflow joblib nltk scikit-learn selenium beautifulsoup4
+   -  Cài đặt các thư viện cho file main.py:
+      + pip install pandas numpy nltk python-dotenv kagglehub tqdm joblib imbalanced-learn scikit-learn gensim torch tensorflow
+
+*chạy chương trình:
+   -  train mô hình:
+         python main.py
+   -  vào môi trường ảo:
+         env\Scripts\activate
+   -  chạy file giao diện: 
+         streamlit run app.py
+# bilstm-sentiment-analysis-amazon-product-reviews
