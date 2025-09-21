@@ -1,0 +1,16 @@
+numpy
+pandas
+torch
+streamlit
+tensorflow
+joblib
+nltk
+scikit-learn
+selenium
+beautifulsoup4
+textblob
+python-dotenv
+kagglehub
+tqdm
+imbalanced-learn
+gensim
