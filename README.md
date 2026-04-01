@@ -1,106 +1,94 @@
-# bilstm-sentiment-analysis-amazon-product-reviews
+# BiLSTM Sentiment Analysis - Amazon Product Reviews
 
 ## Giới thiệu
 
-Dự án này xây dựng một hệ thống phân tích cảm xúc (sentiment analysis) cho các đánh giá sản phẩm trên Amazon. Hệ thống sử dụng mô hình mạng nơ-ron tái phát hai chiều với cơ chế bộ nhớ dài-ngắn hạn (BiLSTM) và biểu diễn từ Word2Vec để phân loại cảm xúc của văn bản thành "Tích cực" hoặc "Tiêu cực". Ngoài ra, dự án còn tích hợp một công cụ cào dữ liệu (scraper) từ Amazon để thu thập các đánh giá sản phẩm dựa trên URL. Cuối cùng, một giao diện người dùng đồ họa (GUI) được xây dựng bằng Streamlit cho phép người dùng tương tác với mô hình và công cụ cào dữ liệu một cách dễ dàng.
+Hệ thống phân tích cảm xúc (Sentiment Analysis) cho các đánh giá sản phẩm trên Amazon, sử dụng mô hình **BiLSTM** (Bidirectional Long Short-Term Memory) kết hợp **Word2Vec** embeddings. Dự án bao gồm:
 
-## Cài đặt chương trình
+- Huấn luyện mô hình phân loại cảm xúc văn bản thành **Tích cực** / **Tiêu cực** trên tập dữ liệu Sentiment140 (~1.6 triệu tweet) từ Kaggle.
+- Cào (scrape) đánh giá sản phẩm trực tiếp từ Amazon bằng Selenium + BeautifulSoup.
+- Giao diện web tương tác được xây dựng bằng **Streamlit**.
 
-Để chạy chương trình, bạn cần thực hiện các bước sau:
+## Kết quả huấn luyện
 
-1.  **Tải và cài đặt ChromeDriver:**
-    * Tải ChromeDriver phù hợp với phiên bản Chrome bạn đang sử dụng từ [https://chromedriver.chromium.org/downloads](https://chromedriver.chromium.org/downloads).
-    * Giải nén và đặt thư mục `chromedriver-win64` vào một vị trí thích hợp (ví dụ: `D:\\code\\chuyende2\\`). **Lưu ý:** Thay đổi đường dẫn `CHROMEDRIVER_PATH` trong `app.py` nếu bạn đặt ChromeDriver ở vị trí khác.
+![Kết quả huấn luyện](image/train.png)
 
-2.  **Tạo và kích hoạt môi trường ảo (khuyến nghị):**
+![Kết quả huấn luyện 2](image/train2.png)
 
-    ```bash
-    python -m venv env
-    env\Scripts\activate  # Trên Windows
-    source env/bin/activate # Trên macOS và Linux
-    ```
+## Yêu cầu hệ thống
 
-3.  **Cài đặt các thư viện cần thiết:**
+- Python 3.8+
+- Google Chrome & [ChromeDriver](https://googlechromelabs.github.io/chrome-for-testing/) phù hợp với phiên bản Chrome
+- (Khuyến nghị) GPU hỗ trợ CUDA để huấn luyện nhanh hơn
 
-    ```bash
-    pip install pandas numpy torch streamlit tensorflow joblib nltk scikit-learn selenium beautifulsoup4
-    ```
+## Cài đặt
 
-    * **Lưu ý:** Các thư viện cho file `main.py` đã được liệt kê trong hướng dẫn chạy file này.
+1. **Clone repo và tạo môi trường ảo:**
 
-## Chạy chương trình
+   ```bash
+   git clone <repo-url>
+   cd bilstm-amazon-sentiment-analysis
+   python -m venv env
+   env\Scripts\activate        # Windows
+   source env/bin/activate     # macOS / Linux
+   ```
 
-Dự án này bao gồm hai phần chính: huấn luyện mô hình và giao diện người dùng.
+2. **Cài đặt thư viện:**
 
-### 1. Huấn luyện mô hình (`main.py`)
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-File `main.py` chứa code để huấn luyện mô hình BiLSTM phân tích cảm xúc.
+3. **Cài đặt ChromeDriver:**
+   - Tải ChromeDriver phù hợp phiên bản Chrome từ [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/).
+   - Giải nén thư mục `chromedriver-win64` vào thư mục gốc của dự án.
+   - Cập nhật biến `CHROMEDRIVER_PATH` trong `app.py` nếu đặt ở vị trí khác.
 
-* **Các thư viện cần thiết:**
+4. **Cấu hình Kaggle (cho huấn luyện):**
+   - Tạo file `.env` hoặc xác thực tài khoản Kaggle để `kagglehub` có thể tải dữ liệu Sentiment140.
 
-    ```bash
-    pip install pandas numpy nltk python-dotenv kagglehub tqdm joblib imbalanced-learn scikit-learn gensim torch tensorflow
-    ```
+## Sử dụng
 
-* **Tải dữ liệu:** Script sử dụng dữ liệu từ Kaggle. Đảm bảo bạn đã cài đặt `kagglehub` và xác thực với tài khoản Kaggle của mình.
+### 1. Huấn luyện mô hình
 
-* **Chạy huấn luyện:**
+```bash
+python main.py
+```
 
-    ```bash
-    python main.py
-    ```
+Quá trình huấn luyện sẽ:
 
-    Script sẽ:
+- Tải dữ liệu Sentiment140 từ Kaggle (~1.6 triệu mẫu)
+- Tiền xử lý văn bản (lowercase, loại bỏ stop words, lemmatization)
+- Huấn luyện Word2Vec embeddings (unigrams + bigrams)
+- Cân bằng dữ liệu bằng SMOTE
+- Huấn luyện mô hình BiLSTM (10 epochs)
+- Đánh giá trên tập test (80/20 split)
+- Lưu mô hình vào `models/BiLSTM_Word2Vec_model.pt` và tokenizer vào `models/tokenizer_and_encoder.joblib`
 
-    * Kiểm tra GPU khả dụng.
-    * Tải dữ liệu từ Kaggle.
-    * Tiền xử lý văn bản (chuyển về chữ thường, loại bỏ stop words, lemmatization).
-    * Huấn luyện mô hình Word2Vec để tạo embedding cho từ.
-    * Xây dựng và huấn luyện mô hình BiLSTM.
-    * Đánh giá mô hình trên tập kiểm tra.
-    * Lưu mô hình đã huấn luyện và tokenizer vào thư mục `models`.
+### 2. Chạy giao diện Streamlit
 
-### 2. Giao diện người dùng (`app.py`)
+```bash
+streamlit run app.py
+```
 
-File `app.py` cung cấp giao diện người dùng đồ họa (GUI) bằng Streamlit để tương tác với mô hình và công cụ cào dữ liệu.
+Ứng dụng mở trên trình duyệt với 3 chức năng:
 
-* **Vào môi trường ảo (nếu bạn đã tạo):**
+| Chức năng                 | Mô tả                                                                                                             |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| **Sentiment Analysis**    | Nhập văn bản bất kỳ → dự đoán cảm xúc Tích cực / Tiêu cực                                                         |
+| **Amazon Review Scraper** | Nhập tài khoản Amazon + URL review sản phẩm → cào 1 review mỗi mức sao (1–5) và phân loại cảm xúc                 |
+| **Model Evaluation**      | Upload file CSV (cột: `sentiment`, `id`, `date`, `query`, `user`, `text`) → tính Accuracy & Classification Report |
 
-    ```bash
-     env\Scripts\activate  # Trên Windows
-    source env/bin/activate # Trên macOS và Linux
-    ```
+## Công nghệ sử dụng
 
-* **Chạy ứng dụng Streamlit:**
-
-    ```bash
-    streamlit run app.py
-    ```
-
-    Ứng dụng sẽ mở trong trình duyệt web của bạn.
-
-#### Chức năng
-
-Ứng dụng Streamlit cung cấp các chức năng sau:
-
-* **Sentiment Analysis:** Nhập văn bản và dự đoán cảm xúc (tích cực hoặc tiêu cực).
-* **Amazon Review Scraper:**
-    * Nhập thông tin tài khoản Amazon (email, password) và URL của trang đánh giá sản phẩm.
-    * Ứng dụng sẽ cào các đánh giá và phân loại cảm xúc của từng đánh giá.
-* **Model Evaluation:**
-    * Tải file CSV chứa dữ liệu đánh giá (với các cột yêu cầu: sentiment, id, date, query, user, text).
-    * Ứng dụng sẽ đánh giá hiệu suất của mô hình trên dữ liệu đã tải.
-
-## Cấu trúc code
-
-* `main.py`: Chứa code huấn luyện mô hình BiLSTM.
-* `app.py`: Chứa code cho ứng dụng Streamlit, bao gồm cả chức năng cào dữ liệu và phân tích cảm xúc.
-* `models/`: Thư mục này chứa các file đã lưu của mô hình đã huấn luyện (`BiLSTM_Word2Vec_model.pt`) và tokenizer (`tokenizer_and_encoder.joblib`).
-* `chromedriver-win64/`: Thư mục chứa ChromeDriver (nếu bạn chọn đặt nó ở đây).
+- **Deep Learning:** PyTorch (BiLSTM), Gensim (Word2Vec), TensorFlow/Keras (Tokenizer & Padding)
+- **Xử lý ngôn ngữ:** NLTK (tokenize, stopwords, lemmatization)
+- **Cào dữ liệu:** Selenium, BeautifulSoup4
+- **Giao diện:** Streamlit
+- **Xử lý dữ liệu:** Pandas, NumPy, scikit-learn, imbalanced-learn (SMOTE)
 
 ## Lưu ý quan trọng
 
-* **Bảo mật:** Khi sử dụng chức năng cào dữ liệu, hãy cẩn thận với thông tin tài khoản Amazon của bạn.
-* **ChromeDriver:** Đảm bảo phiên bản ChromeDriver tương thích với phiên bản Chrome bạn đang sử dụng.
-* **Hiệu suất:** Quá trình huấn luyện mô hình có thể tốn thời gian, đặc biệt nếu bạn không có GPU.
-* **Yêu cầu về dữ liệu đánh giá mô hình:** File CSV dùng để đánh giá mô hình phải có các cột sau: `sentiment`, `id`, `date`, `query`, `user`, `text`. Cột `text` chứa nội dung đánh giá, cột `sentiment` chứa nhãn cảm xúc (0 cho tiêu cực, 4 cho tích cực).
+- **Bảo mật:** Khi sử dụng chức năng cào dữ liệu, hãy cẩn thận với thông tin tài khoản Amazon của bạn.
+- **ChromeDriver:** Đảm bảo phiên bản ChromeDriver tương thích với phiên bản Chrome bạn đang sử dụng.
+- **Hiệu suất:** Quá trình huấn luyện mô hình có thể tốn thời gian, đặc biệt nếu bạn không có GPU.
+- **Yêu cầu về dữ liệu đánh giá mô hình:** File CSV dùng để đánh giá mô hình phải có các cột sau: `sentiment`, `id`, `date`, `query`, `user`, `text`. Cột `text` chứa nội dung đánh giá, cột `sentiment` chứa nhãn cảm xúc (0 cho tiêu cực, 4 cho tích cực).
